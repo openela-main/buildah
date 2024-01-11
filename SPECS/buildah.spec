@@ -8,14 +8,14 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 %endif
 
 %global import_path github.com/containers/buildah
-%global branch release-1.29
-%global commit0 f07d2c9c09ff8fa33c045c381e2efcd47deb1d69
+#%%global branch main
+%global commit0 3ae75d4a4a72228e2eb2f90b29441728bc8af87e
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 1
 Name: buildah
-Version: 1.29.1
-Release: 2%{?dist}
+Version: 1.31.3
+Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -27,7 +27,7 @@ Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar
 Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
 %endif
 BuildRequires: golang >= 1.16.6
-BuildRequires: git
+BuildRequires: git-core
 BuildRequires: glib2-devel
 BuildRequires: libseccomp-devel
 BuildRequires: ostree-devel
@@ -66,6 +66,7 @@ Requires: jq
 Requires: httpd-tools
 Requires: openssl
 Requires: nmap-ncat
+Requires: git-daemon
 
 %description tests
 %{summary}
@@ -133,10 +134,44 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Fri Aug 25 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.3
+- Related: #2176063
+
+* Fri Aug 11 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.2
+- Related: #2176063
+
+* Fri Aug 04 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.1-2
+- build buildah off main branch for early testing of zstd compression
+- Related: #2176063
+
+* Fri Jul 21 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.1
+- Related: #2176063
+
+* Mon Jul 03 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.0
+- Related: #2176063
+
+* Wed Jun 14 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.30.0-2
+- rebuild for following CVEs:
+CVE-2023-25173 CVE-2022-41724 CVE-2022-41725 CVE-2023-24538 CVE-2023-24534 CVE-2023-24536 CVE-2022-41723 CVE-2023-24539 CVE-2023-24540 CVE-2023-29400
+- Resolves: #2175073
+- Resolves: #2179958
+- Resolves: #2187332
+- Resolves: #2187375
+- Resolves: #2203696
+- Resolves: #2207518
+
+* Wed Apr 19 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.30.0-1
+- update to 1.30.0
+- Related: #2176063
+
 * Mon Apr 03 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-2
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.29
   (https://github.com/containers/buildah/commit/f07d2c9)
-- Resolves: #2183632
+- Resolves: #2178263
 
 * Mon Feb 20 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-1
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.29
