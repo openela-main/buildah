@@ -11,14 +11,14 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 %endif
 
 %global import_path github.com/containers/buildah
-%global branch release-1.29
-%global commit0 f07d2c9c09ff8fa33c045c381e2efcd47deb1d69
+#%%global branch main
+%global commit0 3ae75d4a4a72228e2eb2f90b29441728bc8af87e
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 1
 Name: buildah
-Version: 1.29.1
-Release: 2%{?dist}
+Version: 1.31.3
+Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -135,65 +135,54 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
-* Mon Apr 03 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-2
+* Fri Aug 25 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.3
+- Related: #2176055
+
+* Fri Aug 11 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.2
+- Related: #2176055
+
+* Fri Aug 04 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.1-2
+- build buildah off main branch for early testing of zstd compression
+- Related: #2176055
+
+* Fri Jul 21 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.1
+- Related: #2176055
+
+* Mon Jul 03 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.31.0
+- Related: #2176055
+
+* Wed Jun 14 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.30.0-2
+- rebuild for following CVEs:
+CVE-2023-25173 CVE-2022-41724 CVE-2022-41725 CVE-2023-24537 CVE-2023-24538 CVE-2023-24534 CVE-2023-24536 CVE-2022-41723 CVE-2023-24539 CVE-2023-24540 CVE-2023-29400
+- Resolves: #2175070
+- Resolves: #2179948
+- Resolves: #2187317
+- Resolves: #2187364
+- Resolves: #2203680
+- Resolves: #2207510
+
+* Tue Jun 06 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.30.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.30.0
+- Related: #2176055
+
+* Fri May 12 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-4
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.29
+  (https://github.com/containers/buildah/commit/f01e5f9)
+- Related: #2176055
+
+* Mon Apr 03 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-3
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.29
   (https://github.com/containers/buildah/commit/f07d2c9)
 - Resolves: #2166195
 
-* Thu Feb 16 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-1
+* Wed Mar 08 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.1-2
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.29
   (https://github.com/containers/buildah/commit/7fa17a8)
-- Related: #2123641
-
-* Fri Feb 10 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-4
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.29
-  (https://github.com/containers/buildah/commit/c822cc6)
-- Related: #2123641
-
-* Tue Jan 31 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-3
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.29
-  (https://github.com/containers/buildah/commit/94b723c)
-- Related: #2123641
-
-* Mon Jan 30 2023 Jindrich Novy <jnovy@redhat.com>
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.29.0
-  (https://github.com/containers/buildah/commit/)
-- Related: #2123641
-
-* Fri Jan 27 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.29.0
-  (https://github.com/containers/buildah/commit/94b723c)
-- Related: #2123641
-
-* Wed Jan 25 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-0.5
-- update to the latest content of https://github.com/containers/buildah/tree/main
-  (https://github.com/containers/buildah/commit/078a7ff)
-- Related: #2123641
-
-* Tue Jan 24 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-0.4
-- update to the latest content of https://github.com/containers/buildah/tree/main
-  (https://github.com/containers/buildah/commit/4b72f05)
-- Related: #2123641
-
-* Wed Jan 18 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-0.3
-- update to the latest content of https://github.com/containers/buildah/tree/main
-  (https://github.com/containers/buildah/commit/c541c35)
-- Related: #2123641
-
-* Tue Jan 17 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-0.2
-- update to the latest content of https://github.com/containers/buildah/tree/main
-  (https://github.com/containers/buildah/commit/39dfa73)
-- Related: #2123641
-
-* Fri Jan 13 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.29.0-0.1
-- update to the latest content of https://github.com/containers/buildah/tree/main
-  (https://github.com/containers/buildah/commit/8ca903b)
-- Resolves: #2140087
-
-* Fri Jan 06 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.28.2-3
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.28
-  (https://github.com/containers/buildah/commit/cfefbb6)
-- Resolves: #2140087
+- Related: #2176055
 
 * Tue Dec 06 2022 Jindrich Novy <jnovy@redhat.com> - 1:1.28.2-2
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.28
