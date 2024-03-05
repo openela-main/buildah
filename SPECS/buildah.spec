@@ -18,7 +18,7 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 Epoch: 1
 Name: buildah
 Version: 1.31.3
-Release: 1%{?dist}
+Release: 3%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -29,7 +29,7 @@ Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar
 %else
 Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
 %endif
-BuildRequires: golang >= 1.17.7
+BuildRequires: golang >= 1.20.6
 BuildRequires: git
 BuildRequires: glib2-devel
 BuildRequires: libseccomp-devel
@@ -135,6 +135,14 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Tue Jan 23 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-3
+- Make the module buildable again
+- Resolves: RHEL-16299
+
+* Mon Dec 04 2023 Lokesh Mandvekar <lsm5@redhat.com> - 1:1.31.3-2
+- Rebuild with golang 1.20.10 for CVE-2023-39321
+- Related: Jira:RHEL-4512
+
 * Fri Aug 25 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-1
 - update to https://github.com/containers/buildah/releases/tag/v1.31.3
 - Related: #2176055
