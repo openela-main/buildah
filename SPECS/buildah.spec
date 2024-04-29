@@ -11,14 +11,14 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 %endif
 
 %global import_path github.com/containers/buildah
-#%%global branch main
-%global commit0 3ae75d4a4a72228e2eb2f90b29441728bc8af87e
+%global branch release-1.31
+%global commit0 5fd539c24ae54838213028d35e8139e0b6d55af1
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 1
 Name: buildah
-Version: 1.31.3
-Release: 3%{?dist}
+Version: 1.31.5
+Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -135,6 +135,11 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Wed Apr 17 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.31.5-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.31
+  (https://github.com/containers/buildah/commit/5fd539c)
+- Resolves: RHEL-26772
+
 * Tue Jan 23 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-3
 - Make the module buildable again
 - Resolves: RHEL-16299
