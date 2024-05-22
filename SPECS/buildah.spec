@@ -11,14 +11,14 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 %endif
 
 %global import_path github.com/containers/buildah
-%global branch release-1.31
-%global commit0 5fd539c24ae54838213028d35e8139e0b6d55af1
+%global branch release-1.33
+%global commit0 f843563df89a838b97450b3ceb777a5fab75569c
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
-Epoch: 1
+Epoch: 2
 Name: buildah
-Version: 1.31.5
-Release: 1%{?dist}
+Version: 1.33.6
+Release: 2%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -29,7 +29,7 @@ Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar
 %else
 Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
 %endif
-BuildRequires: golang >= 1.20.6
+BuildRequires: golang >= 1.17.7
 BuildRequires: git
 BuildRequires: glib2-devel
 BuildRequires: libseccomp-devel
@@ -39,6 +39,7 @@ BuildRequires: /usr/bin/go-md2man
 BuildRequires: gpgme-devel
 BuildRequires: device-mapper-devel
 BuildRequires: libassuan-devel
+BuildRequires: shadow-utils-subid-devel
 BuildRequires: make
 Requires: runc >= 1.0.0-26
 Requires: containers-common >= 2:1-2
@@ -93,7 +94,7 @@ popd
 mv vendor src
 
 export GOPATH=$(pwd)/_build:$(pwd)
-export BUILDTAGS='seccomp selinux btrfs_noversion exclude_graphdriver_btrfs'
+export BUILDTAGS="seccomp selinux btrfs_noversion exclude_graphdriver_btrfs $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
 export GO111MODULE=off
 export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
 export CNI_VERSION=`grep '^# github.com/containernetworking/cni ' src/modules.txt | sed 's,.* ,,'`
@@ -135,18 +136,47 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
-* Wed Apr 17 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.31.5-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.31
-  (https://github.com/containers/buildah/commit/5fd539c)
-- Resolves: RHEL-26772
+* Mon Feb 26 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.6-2
+- update tags for systemd libsubid
+- Resolves: RHEL-26594
 
-* Tue Jan 23 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-3
-- Make the module buildable again
-- Resolves: RHEL-16299
+* Mon Feb 19 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.6-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
+  (https://github.com/containers/buildah/commit/f843563)
+- Related: Jira:RHEL-2110
 
-* Mon Dec 04 2023 Lokesh Mandvekar <lsm5@redhat.com> - 1:1.31.3-2
-- Rebuild with golang 1.20.10 for CVE-2023-39321
-- Related: Jira:RHEL-4512
+* Fri Feb 02 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.5-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
+  (https://github.com/containers/buildah/commit/70b792d)
+- Related: Jira:RHEL-2110
+
+* Wed Jan 31 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.4-2
+- revert back to 1.33.4
+- Related: Jira:RHEL-2110
+
+* Tue Jan 02 2024 Jindrich Novy <jnovy@redhat.com> - 1:1.34.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.34.0
+- Related: Jira:RHEL-2110
+
+* Thu Dec 07 2023 Lokesh Mandvekar <lsm5@redhat.com> - 1:1.33.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.33.2
+- Related: Jira:RHEL-2110
+
+* Sun Nov 19 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.33.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.33.1
+- Related: Jira:RHEL-2110
+
+* Tue Oct 31 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.32.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.32.2
+- Related: Jira:RHEL-2110
+
+* Mon Oct 30 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.32.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.32.1
+- Related: Jira:RHEL-2110
+
+* Fri Sep 15 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.32.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.32.0
+- Related: Jira:RHEL-2110
 
 * Fri Aug 25 2023 Jindrich Novy <jnovy@redhat.com> - 1:1.31.3-1
 - update to https://github.com/containers/buildah/releases/tag/v1.31.3
