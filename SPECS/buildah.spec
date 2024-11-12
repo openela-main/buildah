@@ -8,13 +8,13 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 %endif
 
 %global import_path github.com/containers/buildah
-%global branch release-1.33
-%global commit0 bd85c170370c85a40eb36fcb26baa7cc18236cab
+#%%global branch release-1.33
+%global commit0 eadda3bc0e692f6d4c5d6f813f63f059413e92fc
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 2
 Name: buildah
-Version: 1.33.10
+Version: 1.37.2
 Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
@@ -135,37 +135,33 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
-* Thu Oct 24 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.10-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
-  (https://github.com/containers/buildah/commit/bd85c17)
-- Resolves: RHEL-61842
+* Wed Aug 21 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.37.2
+- Related: RHEL-27608
 
-* Fri Oct 11 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.9-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
-  (https://github.com/containers/buildah/commit/4dc26b9)
-- Resolves: RHEL-61116
+* Thu Aug 15 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.37.1
+- Related: RHEL-27608
 
-* Tue Oct 08 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.7-5
-- rebuild to address CVE-2024-34155 CVE-2024-34156 CVE-2024-34158
-- Resolves: RHEL-58191 RHEL-57972 RHEL-57910
+* Mon Jul 29 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.37.0
+- Resolves: RHEL-47164 RHEL-40808
 
-* Tue Jul 23 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.7-4
-- rebuild for CVE-2024-24783
-- Resolves: RHEL-28428
+* Wed May 29 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.36.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.36.0
+- Related: RHEL-27608
 
-* Fri Jun 21 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.7-3
-- rebuild for CVE-2024-1394
-- Resolves: RHEL-24307
+* Wed Mar 27 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.35.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.35.2
+- Related: RHEL-27608
 
-* Tue Apr 30 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.7-2
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
-  (https://github.com/containers/buildah/commit/997beea)
-- Resolves: RHEL-28731
+* Tue Mar 19 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.35.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.35.1
+- Related: RHEL-27608
 
-* Thu Mar 21 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.7-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
-  (https://github.com/containers/buildah/commit/b95e962)
-- Resolves: RHEL-28230
+* Fri Mar 15 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.35.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.35.0
+- Resolves: RHEL-29278
 
 * Mon Feb 26 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.33.6-2
 - update tags for systemd libsubid
