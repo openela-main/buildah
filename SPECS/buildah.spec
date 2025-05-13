@@ -32,10 +32,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.39.0
+Version: 1.39.4
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 2%{?dist}
+Release: 1%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -119,7 +119,7 @@ export CGO_CFLAGS+=" -m64 -mtune=generic -fcf-protection=full"
 export CNI_VERSION=`grep '^# github.com/containernetworking/cni ' src/modules.txt | sed 's,.* ,,'`
 export LDFLAGS="-X main.buildInfo=`date +%s` -X main.cniVersion=${CNI_VERSION}"
 
-export BUILDTAGS="seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
+export BUILDTAGS="cni seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
 %if !%{defined build_with_btrfs}
 export BUILDTAGS+=" btrfs_noversion exclude_graphdriver_btrfs"
 %endif
@@ -171,6 +171,18 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Fri Mar 28 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.4-1
+- update to https://github.com/containers/buildah/releases/tag/v1.39.4
+- Resolves: RHEL-85114
+
+* Thu Mar 27 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.3-1
+- update to https://github.com/containers/buildah/releases/tag/v1.39.3
+- Resolves: RHEL-85114
+
+* Thu Feb 27 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.39.1
+- Resolves: RHEL-80999
+
 * Thu Feb 13 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.0-2
 - sync spec with upstream
 - Related: RHEL-60277
