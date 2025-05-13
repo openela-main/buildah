@@ -1,52 +1,74 @@
-%if 0%{?rhel} > 7 && ! 0%{?fedora}
-%define gobuild(o:) \
-go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl ${BUILDTAGS:-}" -ldflags "${LDFLAGS:-} -compressdwarf=false -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n') -extldflags '%__global_ldflags'" -a -v %{?**};
+%global with_debug 1
+
+%if 0%{?with_debug}
+%global _find_debuginfo_dwz_opts %{nil}
+%global _dwz_low_mem_die_limit 0
 %else
-%if ! 0%{?gobuild:1}
-%define gobuild(o:) GO111MODULE=off go build -buildmode pie -compiler gc -tags="rpm_crashtraceback ${BUILDTAGS:-}" -ldflags "${LDFLAGS:-} -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n') -extldflags '-Wl,-z,relro -Wl,-z,now -specs=/usr/lib/rpm/redhat/redhat-hardened-ld '" -a -v %{?**};
-%endif
+%global debug_package   %{nil}
 %endif
 
-%global import_path github.com/containers/buildah
-%global branch release-1.37
-%global commit0 fd39521492e60607ce8b2867bd44182e15059858
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global gomodulesmode GO111MODULE=on
 
-Epoch: 2
+%if %{defined fedora}
+%define build_with_btrfs 1
+%endif
+
+%if %{defined rhel}
+%define fips 1
+%endif
+
+%global git0 https://github.com/containers/%{name}
+
 Name: buildah
-Version: 1.37.6
-Release: 1%{?dist}
-Summary: A command line tool used for creating OCI Images
-License: ASL 2.0
-URL: https://%{name}.io
-# https://fedoraproject.org/wiki/PackagingDrafts/Go#Go_Language_Architectures
-ExclusiveArch: %{go_arches}
-%if 0%{?branch:1}
-Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+# Set different Epoch for copr
+%if %{defined copr_username}
+Epoch: 102
 %else
-Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
+Epoch: 2
 %endif
-BuildRequires: golang >= 1.20.10
-BuildRequires: git-core
-BuildRequires: glib2-devel
-BuildRequires: libseccomp-devel
-BuildRequires: ostree-devel
-BuildRequires: glibc-static
-BuildRequires: /usr/bin/go-md2man
-BuildRequires: gpgme-devel
+# DO NOT TOUCH the Version string!
+# The TRUE source of this specfile is:
+# https://github.com/containers/skopeo/blob/main/rpm/skopeo.spec
+# If that's what you're reading, Version must be 0, and will be updated by Packit for
+# copr and koji builds.
+# If you're reading this on dist-git, the version is automatically filled in by Packit.
+Version: 1.39.0
+# The `AND` needs to be uppercase in the License for SPDX compatibility
+License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
+Release: 2%{?dist}
+%if %{defined golang_arches_future}
+ExclusiveArch: %{golang_arches_future}
+%else
+ExclusiveArch: aarch64 ppc64le s390x x86_64
+%endif
+Summary: A command line tool used for creating OCI Images
+URL: https://%{name}.io
+# Tarball fetched from upstream
+Source: %{git0}/archive/v%{version}.tar.gz
 BuildRequires: device-mapper-devel
+BuildRequires: git-core
+BuildRequires: golang >= 1.16.6
+BuildRequires: glib2-devel
+BuildRequires: glibc-static
+%if !%{defined gobuild}
+BuildRequires: go-rpm-macros
+%endif
+BuildRequires: gpgme-devel
 BuildRequires: libassuan-devel
-BuildRequires: shadow-utils-subid-devel
 BuildRequires: make
-Recommends: crun
-Requires: oci-runtime
-Requires: containers-common >= 2:1-2
-Recommends: container-selinux
-Requires: slirp4netns >= 0.3-0
-Suggests: containernetworking-plugins >= 0.9.1-1
-Requires: netavark
-Requires: iptables
-Requires: nftables
+BuildRequires: ostree-devel
+%if %{defined build_with_btrfs}
+BuildRequires: btrfs-progs-devel
+%endif
+BuildRequires: shadow-utils-subid-devel
+Requires: containers-common-extra
+%if %{defined fedora}
+BuildRequires: libseccomp-static
+%else
+BuildRequires: libseccomp-devel
+%endif
+Requires: libseccomp >= 2.4.1-0
+Suggests: cpp
 
 %description
 The %{name} package provides a command line tool which can be used to
@@ -59,7 +81,11 @@ or
 
 %package tests
 Summary: Tests for %{name}
+
 Requires: %{name} = %{epoch}:%{version}-%{release}
+%if %{defined fedora}
+Requires: bats
+%endif
 Requires: bzip2
 Requires: podman
 Requires: golang
@@ -75,54 +101,63 @@ Requires: git-daemon
 This package contains system tests for %{name}
 
 %prep
-%if 0%{?branch:1}
-%autosetup -Sgit -n containers-%{name}-%{shortcommit0}
-%else
-%autosetup -Sgit -n %{name}-%{commit0}
-%endif
-sed -i 's/GOMD2MAN =/GOMD2MAN ?=/' docs/Makefile
-sed -i '/docs install/d' Makefile
+%autosetup -Sgit -n %{name}-%{version}
 
 %build
-mkdir _build
-pushd _build
-mkdir -p src/github.com/containers
-ln -s $(dirs +1 -l) src/%{import_path}
-popd
+%set_build_flags
+export CGO_CFLAGS=$CFLAGS
 
-mv vendor src
+# These extra flags present in $CFLAGS have been skipped for now as they break the build
+CGO_CFLAGS=$(echo $CGO_CFLAGS | sed 's/-flto=auto//g')
+CGO_CFLAGS=$(echo $CGO_CFLAGS | sed 's/-Wp,D_GLIBCXX_ASSERTIONS//g')
+CGO_CFLAGS=$(echo $CGO_CFLAGS | sed 's/-specs=\/usr\/lib\/rpm\/redhat\/redhat-annobin-cc1//g')
 
-export GOPATH=$(pwd)/_build:$(pwd)
-export BUILDTAGS="seccomp exclude_graphdriver_devicemapper cni selinux btrfs_noversion exclude_graphdriver_btrfs $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
-export GO111MODULE=off
-export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
+%ifarch x86_64
+export CGO_CFLAGS+=" -m64 -mtune=generic -fcf-protection=full"
+%endif
+
 export CNI_VERSION=`grep '^# github.com/containernetworking/cni ' src/modules.txt | sed 's,.* ,,'`
-export LDFLAGS="$LDFLAGS -X main.buildInfo=`date +%s` -X main.cniVersion=${CNI_VERSION}"
-rm -f src/github.com/containers/storage/drivers/register/register_btrfs.go
-%gobuild -o bin/%{name} %{import_path}/cmd/%{name}
-%gobuild -o imgtype %{import_path}/tests/imgtype
-%gobuild -o bin/copy %{import_path}/tests/copy
-%gobuild -o bin/tutorial %{import_path}/tests/tutorial
-GOMD2MAN=go-md2man %{__make} -C docs
+export LDFLAGS="-X main.buildInfo=`date +%s` -X main.cniVersion=${CNI_VERSION}"
+
+export BUILDTAGS="seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
+%if !%{defined build_with_btrfs}
+export BUILDTAGS+=" btrfs_noversion exclude_graphdriver_btrfs"
+%endif
+
+%if %{defined fips}
+export BUILDTAGS+=" libtrust_openssl"
+%endif
+
+%gobuild -o bin/%{name} ./cmd/%{name}
+%gobuild -o bin/imgtype ./tests/imgtype
+%gobuild -o bin/copy ./tests/copy
+%gobuild -o bin/tutorial ./tests/tutorial
+%gobuild -o bin/inet ./tests/inet
+%{__make} docs
 
 %install
-export GOPATH=$(pwd)/_build:$(pwd):%{gopath}
 make DESTDIR=%{buildroot} PREFIX=%{_prefix} install install.completions
+
 install -d -p %{buildroot}/%{_datadir}/%{name}/test/system
 cp -pav tests/. %{buildroot}/%{_datadir}/%{name}/test/system
-cp imgtype %{buildroot}/%{_bindir}/%{name}-imgtype
+cp bin/imgtype %{buildroot}/%{_bindir}/%{name}-imgtype
 cp bin/copy %{buildroot}/%{_bindir}/%{name}-copy
 cp bin/tutorial %{buildroot}/%{_bindir}/%{name}-tutorial
-make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
+cp bin/inet     %{buildroot}/%{_bindir}/%{name}-inet
+
+rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 
 #define license tag if not already defined
 %{!?_licensedir:%global license %doc}
 
+# Include check to silence rpmlint.
+%check
+
 %files
-%license LICENSE
+%license LICENSE vendor/modules.txt
 %doc README.md
 %{_bindir}/%{name}
-%{_mandir}/man[15]/*
+%{_mandir}/man1/%{name}*
 %dir %{_datadir}/bash-completion
 %dir %{_datadir}/bash-completion/completions
 %{_datadir}/bash-completion/completions/%{name}
@@ -132,29 +167,43 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_bindir}/%{name}-imgtype
 %{_bindir}/%{name}-copy
 %{_bindir}/%{name}-tutorial
+%{_bindir}/%{name}-inet
 %{_datadir}/%{name}/test
 
 %changelog
-* Thu Jan 23 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.37.6-1
+* Thu Feb 13 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.0-2
+- sync spec with upstream
+- Related: RHEL-60277
+
+* Tue Feb 04 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.39.0
+- Related: RHEL-60277
+
+* Tue Jan 21 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.38.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.38.1
+- Related: RHEL-60277
+
+* Wed Nov 27 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.38.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.38.0
+- Related: RHEL-60277
+
+* Wed Nov 27 2024 Jindrich Novy <jnovy@redhat.com>
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.37
-  (https://github.com/containers/buildah/commit/fd39521)
-- Resolves: RHEL-67617
+  (https://github.com/containers/buildah/commit/c060201)
+- Related: RHEL-60277
 
 * Mon Oct 21 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.5-1
-- update to https://github.com/containers/buildah/releases/tag/v1.37.5
-- Resolves: RHEL-61857
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.37
+  (https://github.com/containers/buildah/commit/f31d99d)
+- Resolves: RHEL-61148
 
-* Mon Oct 14 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.4-2
+* Mon Oct 14 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.3-2
 - enable CNI
-- Resolves: RHEL-62107
+- Related: RHEL-60277
 
-* Fri Oct 11 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.4-1
-- update to https://github.com/containers/buildah/releases/tag/v1.37.4
-- Resolves: RHEL-61114
-
-* Mon Oct 07 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.2-2
-- rebuild to fix  CVE-2024-34156
-- Resolves: RHEL-57912
+* Thu Sep 26 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.3-1
+- update to https://github.com/containers/buildah/releases/tag/v1.37.3
+- Resolves: RHEL-60282
 
 * Wed Aug 21 2024 Jindrich Novy <jnovy@redhat.com> - 2:1.37.2-1
 - update to https://github.com/containers/buildah/releases/tag/v1.37.2
