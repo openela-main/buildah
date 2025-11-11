@@ -32,10 +32,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.39.4
+Version: 1.41.3
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 2%{?dist}
+Release: 1%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -56,11 +56,11 @@ BuildRequires: go-rpm-macros
 BuildRequires: gpgme-devel
 BuildRequires: libassuan-devel
 BuildRequires: make
-BuildRequires: ostree-devel
 %if %{defined build_with_btrfs}
 BuildRequires: btrfs-progs-devel
 %endif
 BuildRequires: shadow-utils-subid-devel
+BuildRequires: sqlite-devel
 Requires: containers-common-extra
 %if %{defined fedora}
 BuildRequires: libseccomp-static
@@ -79,12 +79,16 @@ or
 * save container's root file system layer to create a new image
 * delete a working container or an image
 
+# This subpackage is only intended for CI testing.
+# Not meant for end user/customer usage.
 %package tests
 Summary: Tests for %{name}
 
 Requires: %{name} = %{epoch}:%{version}-%{release}
-%if %{defined fedora}
+%if %{defined bats_epel}
 Requires: bats
+%else
+Recommends: bats
 %endif
 Requires: bzip2
 Requires: podman
@@ -119,9 +123,9 @@ export CGO_CFLAGS+=" -m64 -mtune=generic -fcf-protection=full"
 export CNI_VERSION=`grep '^# github.com/containernetworking/cni ' src/modules.txt | sed 's,.* ,,'`
 export LDFLAGS="-X main.buildInfo=`date +%s` -X main.cniVersion=${CNI_VERSION}"
 
-export BUILDTAGS="cni seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh)"
+export BUILDTAGS="cni seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh) libsqlite3"
 %if !%{defined build_with_btrfs}
-export BUILDTAGS+=" btrfs_noversion exclude_graphdriver_btrfs"
+export BUILDTAGS+=" exclude_graphdriver_btrfs"
 %endif
 
 %if %{defined fips}
@@ -133,6 +137,8 @@ export BUILDTAGS+=" libtrust_openssl"
 %gobuild -o bin/copy ./tests/copy
 %gobuild -o bin/tutorial ./tests/tutorial
 %gobuild -o bin/inet ./tests/inet
+%gobuild -o bin/dumpspec ./tests/dumpspec
+%gobuild -o bin/passwd ./tests/passwd
 %{__make} docs
 
 %install
@@ -144,6 +150,8 @@ cp bin/imgtype %{buildroot}/%{_bindir}/%{name}-imgtype
 cp bin/copy %{buildroot}/%{_bindir}/%{name}-copy
 cp bin/tutorial %{buildroot}/%{_bindir}/%{name}-tutorial
 cp bin/inet     %{buildroot}/%{_bindir}/%{name}-inet
+cp bin/dumpspec %{buildroot}/%{_bindir}/%{name}-dumpspec
+cp bin/passwd %{buildroot}/%{_bindir}/%{name}-passwd
 
 rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 
@@ -168,24 +176,46 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_bindir}/%{name}-copy
 %{_bindir}/%{name}-tutorial
 %{_bindir}/%{name}-inet
+%{_bindir}/%{name}-dumpspec
+%{_bindir}/%{name}-passwd
 %{_datadir}/%{name}/test
 
 %changelog
-* Wed Jun 04 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.4-2
-- rebuild to fix CVE-2025-22871 buildah: Request smuggling due to acceptance of invalid chunked data in net/http
-- Resolves: RHEL-89294
+* Mon Aug 18 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.3-1
+- update to https://github.com/containers/buildah/releases/tag/v1.41.3
+- Related: RHEL-80816
 
-* Fri Mar 28 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.4-1
+* Mon Aug 11 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.41.1
+- Related: RHEL-80816
+
+* Thu Jul 24 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.41.0
+- Related: RHEL-80816
+
+* Tue Jun 10 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.40.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.40.1
+- Related: RHEL-80816
+
+* Wed Apr 02 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.4-1
 - update to https://github.com/containers/buildah/releases/tag/v1.39.4
-- Resolves: RHEL-85114
+- Related: RHEL-80816
 
-* Thu Mar 27 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.3-1
+* Tue Mar 18 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.3-1
 - update to https://github.com/containers/buildah/releases/tag/v1.39.3
-- Resolves: RHEL-85114
+- Related: RHEL-80816
+
+* Wed Mar 05 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.39.2
+- Related: RHEL-80816
 
 * Thu Feb 27 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.1-1
 - update to https://github.com/containers/buildah/releases/tag/v1.39.1
-- Resolves: RHEL-80999
+- Resolves: RHEL-80612
+
+* Mon Feb 24 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.0-3
+- Add CNI explicitly in BUILDTAGS
+- Resolves: RHEL-80396
 
 * Thu Feb 13 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.39.0-2
 - sync spec with upstream
