@@ -9,6 +9,11 @@
 
 %global gomodulesmode GO111MODULE=on
 
+%global import_path github.com/containers/buildah
+%global branch release-1.41
+%global commit0 2ece502d92acf1b3fab0fdf2329c41652440bf40
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+
 %if %{defined fedora}
 %define build_with_btrfs 1
 %endif
@@ -32,7 +37,7 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.41.3
+Version: 1.41.6
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
 Release: 1%{?dist}
@@ -43,8 +48,11 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 %endif
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
-# Tarball fetched from upstream
-Source: %{git0}/archive/v%{version}.tar.gz
+%if 0%{?branch:1}
+Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+%else
+Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
+%endif
 BuildRequires: device-mapper-devel
 BuildRequires: git-core
 BuildRequires: golang >= 1.16.6
@@ -105,7 +113,11 @@ Requires: git-daemon
 This package contains system tests for %{name}
 
 %prep
-%autosetup -Sgit -n %{name}-%{version}
+%if 0%{?branch:1}
+%autosetup -Sgit -n containers-%{name}-%{shortcommit0}
+%else
+%autosetup -Sgit -n %{name}-%{commit0}
+%endif
 
 %build
 %set_build_flags
@@ -181,6 +193,26 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Thu Nov 20 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.6-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
+  (https://github.com/containers/buildah/commit/2ece502)
+- fixes "[Minor Incident] CVE-2025-52881 buildah: container escape and denial of service due to arbitrary write gadgets and procfs write redirects [rhel-10.1.z]"
+- Resolves: RHEL-126634
+
+* Thu Nov 20 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-3
+- rebuild for CVE-2025-58183
+- Resolves: RHEL-125628
+
+* Tue Sep 23 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-2
+- rebuild as the last build was built in the wrong tag
+- Related: RHEL-115167
+
+* Mon Sep 22 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
+  (https://github.com/containers/buildah/commit/ee5b574)
+- fixes "buildah: create parent directories of mount targets with mode 0755 - [RHEL-10.1]  0day"
+- Resolves: RHEL-115167
+
 * Fri Aug 15 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.3-1
 - update to https://github.com/containers/buildah/releases/tag/v1.41.3
 - Related: RHEL-80817
