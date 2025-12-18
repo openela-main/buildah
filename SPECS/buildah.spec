@@ -12,13 +12,13 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 
 %global import_path github.com/containers/buildah
 %global branch release-1.33
-%global commit0 cf49e7c062abd192ccbbe8ae336c6ef3c00dcefb
+%global commit0 65707d09fb432b535e71bbbc3ecb82e86f84b23a
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 2
 Name: buildah
-Version: 1.33.12
-Release: 2%{?dist}
+Version: 1.33.13
+Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -136,6 +136,16 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Mon Dec 15 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.33.13-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
+  (https://github.com/containers/buildah/commit/65707d0)
+- fixes "[Minor Incident] CVE-2025-52881 container-tools:rhel8/buildah: container escape and denial of service due to arbitrary write gadgets and procfs write redirects [rhel-8.10.z]"
+- Resolves: RHEL-126916
+
+* Wed Dec 03 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.33.12-3
+- rebuild for CVE-2025-58183
+- Resolves: RHEL-125644
+
 * Tue May 06 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.33.12-2
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.33
   (https://github.com/containers/buildah/commit/cf49e7c)
