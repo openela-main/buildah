@@ -11,7 +11,7 @@
 
 %global import_path github.com/containers/buildah
 %global branch release-1.41
-%global commit0 2ece502d92acf1b3fab0fdf2329c41652440bf40
+%global commit0 f85ff89cf81237e111ab8afbe2c481c7084af16d
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %if %{defined fedora}
@@ -37,7 +37,7 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.41.6
+Version: 1.41.8
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
 Release: 1%{?dist}
@@ -193,6 +193,18 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Wed Jan 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
+  (https://github.com/containers/buildah/commit/f85ff89)
+- fixes "CVE-2025-47913 buildah: golang.org/x/crypto/ssh/agent: SSH client panic due to unexpected SSH_AGENT_SUCCESS [rhel-9.7.z]"
+- Resolves: RHEL-134792
+
+* Mon Dec 15 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.7-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
+  (https://github.com/containers/buildah/commit/e363f79)
+- fixes "Bump to runc v1.2.9 or v1.3.4 to get CVE and regression fixes - Buildah [rhel-9.7.z]"
+- Resolves: RHEL-132846
+
 * Thu Nov 20 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.6-1
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.41
   (https://github.com/containers/buildah/commit/2ece502)
