@@ -12,12 +12,12 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 
 %global import_path github.com/containers/buildah
 %global branch release-1.33
-%global commit0 65707d09fb432b535e71bbbc3ecb82e86f84b23a
+%global commit0 a7f817901d3bfe517394ada98ac240c7e5bcdaf1
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Epoch: 2
 Name: buildah
-Version: 1.33.13
+Version: 1.33.14
 Release: 1%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
@@ -136,6 +136,12 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Fri Jan 09 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.14-1
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.33
+  (https://github.com/containers/buildah/commit/a7f8179)
+- fixes "CVE-2025-47913 container-tools:rhel8/buildah: golang.org/x/crypto/ssh/agent: SSH client panic due to unexpected SSH_AGENT_SUCCESS [rhel-8.10.z]"
+- Resolves: RHEL-130974
+
 * Mon Dec 15 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.33.13-1
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.33
   (https://github.com/containers/buildah/commit/65707d0)
