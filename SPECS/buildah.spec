@@ -40,7 +40,7 @@ Epoch: 2
 Version: 1.41.8
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -193,6 +193,10 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Thu Feb 19 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-2
+- Rebuild with golang 1.25.7 to fix CVE-2025-68121
+- Resolves: RHEL-149617
+
 * Wed Jan 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-1
 - update to the latest content of https://github.com/containers/buildah/tree/release-1.41
   (https://github.com/containers/buildah/commit/f85ff89)
