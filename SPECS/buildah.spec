@@ -9,11 +9,6 @@
 
 %global gomodulesmode GO111MODULE=on
 
-%global import_path github.com/containers/buildah
-%global branch release-1.41
-%global commit0 f85ff89cf81237e111ab8afbe2c481c7084af16d
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
-
 %if %{defined fedora}
 %define build_with_btrfs 1
 %endif
@@ -37,10 +32,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.41.8
+Version: 1.43.0
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 3%{?dist}
+Release: 2%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -48,11 +43,8 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 %endif
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
-%if 0%{?branch:1}
-Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
-%else
-Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
-%endif
+# Tarball fetched from upstream
+Source: %{git0}/archive/v%{version}.tar.gz
 BuildRequires: device-mapper-devel
 BuildRequires: git-core
 BuildRequires: golang >= 1.16.6
@@ -77,6 +69,9 @@ BuildRequires: libseccomp-devel
 %endif
 Requires: libseccomp >= 2.4.1-0
 Suggests: cpp
+%if %{defined sequoia}
+Requires: podman-sequoia
+%endif
 
 %description
 The %{name} package provides a command line tool which can be used to
@@ -113,11 +108,7 @@ Requires: git-daemon
 This package contains system tests for %{name}
 
 %prep
-%if 0%{?branch:1}
-%autosetup -Sgit -n containers-%{name}-%{shortcommit0}
-%else
-%autosetup -Sgit -n %{name}-%{commit0}
-%endif
+%autosetup -Sgit -n %{name}-%{version}
 
 %build
 %set_build_flags
@@ -144,6 +135,10 @@ export BUILDTAGS+=" exclude_graphdriver_btrfs"
 export BUILDTAGS+=" libtrust_openssl"
 %endif
 
+%if %{defined sequoia}
+export BUILDTAGS+=" containers_image_sequoia"
+%endif
+
 %gobuild -o bin/%{name} ./cmd/%{name}
 %gobuild -o bin/imgtype ./tests/imgtype
 %gobuild -o bin/copy ./tests/copy
@@ -151,6 +146,8 @@ export BUILDTAGS+=" libtrust_openssl"
 %gobuild -o bin/inet ./tests/inet
 %gobuild -o bin/dumpspec ./tests/dumpspec
 %gobuild -o bin/passwd ./tests/passwd
+%gobuild -o bin/crash ./tests/crash
+%gobuild -o bin/wait ./tests/wait
 %{__make} docs
 
 %install
@@ -164,6 +161,8 @@ cp bin/tutorial %{buildroot}/%{_bindir}/%{name}-tutorial
 cp bin/inet     %{buildroot}/%{_bindir}/%{name}-inet
 cp bin/dumpspec %{buildroot}/%{_bindir}/%{name}-dumpspec
 cp bin/passwd %{buildroot}/%{_bindir}/%{name}-passwd
+cp bin/crash %{buildroot}/%{_bindir}/%{name}-crash
+cp bin/wait %{buildroot}/%{_bindir}/%{name}-wait
 
 rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 
@@ -190,52 +189,26 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_bindir}/%{name}-inet
 %{_bindir}/%{name}-dumpspec
 %{_bindir}/%{name}-passwd
+%{_bindir}/%{name}-crash
+%{_bindir}/%{name}-wait
 %{_datadir}/%{name}/test
 
 %changelog
-* Mon Apr 20 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-3
-- rebuild for CVE-2026-34986
-- Resolves: RHEL-165027
+* Mon Feb 23 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-2
+- Rebuild for new golang to address CVE-2025-61726
+- Resolves: RHEL-146099
 
-* Thu Feb 19 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-2
-- Rebuild with golang 1.25.7 to fix CVE-2025-68121
-- Resolves: RHEL-149617
+* Mon Feb 09 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.43.0
+- Related: RHEL-111919
 
-* Wed Jan 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
-  (https://github.com/containers/buildah/commit/f85ff89)
-- fixes "CVE-2025-47913 buildah: golang.org/x/crypto/ssh/agent: SSH client panic due to unexpected SSH_AGENT_SUCCESS [rhel-9.7.z]"
-- Resolves: RHEL-134792
+* Wed Feb 04 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.41.8-1
+- update to https://github.com/containers/buildah/releases/tag/v1.41.8
+- Related: RHEL-111919
 
-* Mon Dec 15 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.7-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
-  (https://github.com/containers/buildah/commit/e363f79)
-- fixes "Bump to runc v1.2.9 or v1.3.4 to get CVE and regression fixes - Buildah [rhel-9.7.z]"
-- Resolves: RHEL-132846
-
-* Thu Nov 20 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.6-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
-  (https://github.com/containers/buildah/commit/2ece502)
-- fixes "[Minor Incident] CVE-2025-52881 buildah: container escape and denial of service due to arbitrary write gadgets and procfs write redirects [rhel-9.7.z]"
-- Resolves: RHEL-126925
-
-* Thu Nov 20 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-4
-- rebuild for CVE-2025-58183
-- Resolves: RHEL-125680
-
-* Fri Oct 24 2025 Jan Kaluza <jkaluza@redhat.com> - 2:1.41.4-3
-- fix the TMT tests
-- Related: RHEL-115166
-
-* Thu Oct 02 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-2
-- rebuild as last build was built in the wrong tag
-- Related: RHEL-115166
-
-* Mon Sep 22 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.41
-  (https://github.com/containers/buildah/commit/ee5b574)
-- fixes "buildah: create parent directories of mount targets with mode 0755 - [RHEL-9.7]  0day"
-- Resolves: RHEL-115166
+* Tue Sep 16 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.4-1
+- update to https://github.com/containers/buildah/releases/tag/v1.41.4
+- Related: RHEL-111919
 
 * Mon Aug 18 2025 Jindrich Novy <jnovy@redhat.com> - 2:1.41.3-1
 - update to https://github.com/containers/buildah/releases/tag/v1.41.3
