@@ -9,6 +9,11 @@
 
 %global gomodulesmode GO111MODULE=on
 
+%global import_path github.com/containers/buildah
+%global branch release-1.43
+%global commit0 c6eb14c2b812c3fcca6a2efedac27bbde5ad7af8
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+
 %if %{defined fedora}
 %define build_with_btrfs 1
 %endif
@@ -32,10 +37,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.43.0
+Version: 1.43.1
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 2%{?dist}
+Release: 1%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -43,8 +48,11 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 %endif
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
-# Tarball fetched from upstream
-Source: %{git0}/archive/v%{version}.tar.gz
+%if 0%{?branch:1}
+Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+%else
+Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
+%endif
 BuildRequires: device-mapper-devel
 BuildRequires: git-core
 BuildRequires: golang >= 1.16.6
@@ -108,7 +116,11 @@ Requires: git-daemon
 This package contains system tests for %{name}
 
 %prep
-%autosetup -Sgit -n %{name}-%{version}
+%if 0%{?branch:1}
+%autosetup -Sgit -n containers-%{name}-%{shortcommit0}
+%else
+%autosetup -Sgit -n %{name}-%{commit0}
+%endif
 
 %build
 %set_build_flags
@@ -194,6 +206,16 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Thu Apr 16 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.43.1
+- fixes CVE-2026-34986
+- Resolves: RHEL-165035
+
+* Tue Apr 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-3
+- update to the latest content of https://github.com/containers/buildah/tree/release-1.43
+  (https://github.com/containers/buildah/commit/bbc4bd1)
+- Resolves: RHEL-95964
+
 * Mon Feb 23 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-2
 - Rebuild for new golang to address CVE-2025-61726
 - Resolves: RHEL-146099
