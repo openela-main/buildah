@@ -11,7 +11,7 @@
 
 %global import_path github.com/containers/buildah
 %global branch release-1.43
-%global commit0 c6eb14c2b812c3fcca6a2efedac27bbde5ad7af8
+%global commit0 08482e746b5a5d210703df043a783789c20142ee
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %if %{defined fedora}
@@ -40,7 +40,7 @@ Epoch: 2
 Version: 1.43.1
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -49,7 +49,7 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
 %if 0%{?branch:1}
-Source0: https://%{import_path}/tarball/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+Source0: https://gitlab.cee.redhat.com/sustaining-engineering/container-tools/src-git/%{name}/-/archive/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
 %else
 Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
 %endif
@@ -117,7 +117,7 @@ This package contains system tests for %{name}
 
 %prep
 %if 0%{?branch:1}
-%autosetup -Sgit -n containers-%{name}-%{shortcommit0}
+%autosetup -Sgit -n %{name}-%{commit0}
 %else
 %autosetup -Sgit -n %{name}-%{commit0}
 %endif
@@ -206,6 +206,10 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Wed Jul 08 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-3
+- bump golang.org/x/crypto to v0.53.0 to fix CVE-2026-39832 and CVE-2026-39835
+- Resolves: RHEL-188733 RHEL-190066
+
 * Sun May 04 2026 Jindrich Novy <jnovy@redhat.com> - 102:1.43.1-2
 - Rebuild for CVE-2026-25679
 - Resolves: RHEL-158759
