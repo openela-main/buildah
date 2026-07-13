@@ -41,7 +41,7 @@ Epoch: 2
 Version: 1.43.1
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -207,6 +207,10 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Fri Jul 10 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-4
+- rebuild for CVE-2026-39822
+- Resolves: RHEL-193643
+
 * Tue Jun 30 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-3
 - bump golang.org/x/crypto to v0.52.0 to fix CVE-2026-39830
 - Resolves: RHEL-186266
