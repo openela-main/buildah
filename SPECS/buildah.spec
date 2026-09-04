@@ -18,7 +18,7 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 Epoch: 2
 Name: buildah
 Version: 1.33.14
-Release: 4%{?dist}
+Release: 6%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -128,6 +128,14 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Tue Sep 01 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.14-6
+- rebuild with updated Go to fix CVE-2026-42499
+- Resolves: RHEL-241668 RHEL-242027 RHEL-242107 RHEL-242222 RHEL-242343 RHEL-242382 RHEL-251834
+
+* Thu Aug 20 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.14-5
+- rebuild with Go 1.25.11 to fix CVE-2026-33818, CVE-2026-56853, CVE-2026-56858,
+  CVE-2026-56859, CVE-2026-56860, CVE-2026-56862
+
 * Wed Jul 01 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.14-4
 - switch source URL from GitHub to the internal GitLab sustaining-engineering repo
 - update to the latest content of release-1.33 (commit 2cbee78)
