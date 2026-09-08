@@ -41,7 +41,7 @@ Epoch: 2
 Version: 1.43.1
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 5%{?dist}
+Release: 6%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -207,6 +207,10 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Wed Sep 02 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-6
+- Rebuild for golang CVE fixes
+- Resolves: RHEL-229833 RHEL-241142 RHEL-241389 RHEL-241658 RHEL-241706 RHEL-242148 RHEL-251830
+
 * Sat Aug 08 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-5
 - rebuild for CVE-2026-33810
 - Resolves: RHEL-229833
