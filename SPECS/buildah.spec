@@ -11,7 +11,7 @@
 
 %global import_path github.com/containers/buildah
 %global branch release-1.43
-%global commit0 08482e746b5a5d210703df043a783789c20142ee
+%global commit0 488c1c92e64334c9015ab3e747600080d44c45b3
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %if %{defined fedora}
@@ -37,10 +37,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.43.1
+Version: 1.43.3
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release:        4%{?dist}
+Release:        2%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -49,7 +49,7 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
 %if 0%{?branch:1}
-Source0: https://gitlab.cee.redhat.com/sustaining-engineering/container-tools/src-git/%{name}/-/archive/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+Source0: https://gitlab.cee.redhat.com/sustaining-engineering/container-tools/src-git/%{name}/-/archive/%{commit0}/%{name}-%{commit0}.tar.gz
 %else
 Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
 %endif
@@ -206,6 +206,19 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Mon Sep 21 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.3-2
+- rebuild for CVE-2026-56853 CVE-2026-56858 CVE-2026-33818 CVE-2026-56860 CVE-2026-56862
+- Resolves: RHEL-241114 RHEL-241310 RHEL-241620 RHEL-241779 RHEL-242275
+
+* Fri Aug 07 2026 Lokesh Mandvekar <lsm5@redhat.com> - 2:1.43.3-1
+- Update to buildah 1.43.3 (488c1c92)
+- Resolves: RHEL-219426
+
+* Tue Aug 04 2026 Lokesh Mandvekar <lsm5@redhat.com> - 2:1.43.2-1
+- Update to release-1.43 branch HEAD (609eb9466)
+- Ensures golang.org/x/crypto v0.53.0 for CVE-2026-46597 fix
+- Resolves: RHEL-219426
+
 * Fri Jul 10 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-4
 - rebuild for CVE-2026-39822
 - Resolves: RHEL-193645
@@ -214,7 +227,7 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 - bump golang.org/x/crypto to v0.53.0 to fix CVE-2026-39832 and CVE-2026-39835
 - Resolves: RHEL-188733 RHEL-190066
 
-* Sun May 04 2026 Jindrich Novy <jnovy@redhat.com> - 102:1.43.1-2
+* Mon May 04 2026 Jindrich Novy <jnovy@redhat.com> - 102:1.43.1-2
 - Rebuild for CVE-2026-25679
 - Resolves: RHEL-158759
 
