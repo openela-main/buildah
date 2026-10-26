@@ -10,8 +10,8 @@
 %global gomodulesmode GO111MODULE=on
 
 %global import_path github.com/containers/buildah
-%global branch release-1.43
-%global commit0 488c1c92e64334c9015ab3e747600080d44c45b3
+%global branch release-1.43-rhel
+%global commit0 c7061d00bae87f95000d550c015bc4d9be0b53af
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %if %{defined fedora}
@@ -37,7 +37,7 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.43.3
+Version: 1.43.4
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
 Release:        2%{?dist}
@@ -206,6 +206,17 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Sat Oct 24 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.4-2
+- Rebuild for CVE-2026-78667 and CVE-2026-111943
+- Resolves: RHEL-279009
+- Resolves: RHEL-287507
+
+* Thu Sep 24 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.4-1
+- Update to buildah 1.43.4 (c7061d00) - fix CVE-2026-56855
+  (golang.org/x/crypto/ssh DoS) and CVE-2025-11395 (arbitrary file write in
+  copier)
+- Resolves: RHEL-256886 RHEL-121272
+
 * Mon Sep 21 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.3-2
 - rebuild for CVE-2026-56853 CVE-2026-56858 CVE-2026-33818 CVE-2026-56860 CVE-2026-56862
 - Resolves: RHEL-241114 RHEL-241310 RHEL-241620 RHEL-241779 RHEL-242275
