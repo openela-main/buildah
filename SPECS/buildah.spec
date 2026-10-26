@@ -17,8 +17,8 @@ go build -buildmode pie -compiler gc -tags="rpm_crashtraceback libtrust_openssl 
 
 Epoch: 2
 Name: buildah
-Version: 1.33.14
-Release: 6%{?dist}
+Version: 1.33.15
+Release: 2%{?dist}
 Summary: A command line tool used for creating OCI Images
 License: ASL 2.0
 URL: https://%{name}.io
@@ -128,6 +128,14 @@ make DESTDIR=%{buildroot} PREFIX=%{_prefix} -C docs install
 %{_datadir}/%{name}/test
 
 %changelog
+* Thu Oct 22 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.15-2
+- Rebuild for CVE-2026-78667 and CVE-2026-111943
+- Resolves: RHEL-278949 RHEL-287628 RHEL-272014
+
+* Tue Sep 29 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.15-1
+- fix Version to match the upstream release-1.33 branch content - Resolves:
+  RHEL-272014
+
 * Tue Sep 01 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.33.14-6
 - rebuild with updated Go to fix CVE-2026-42499
 - Resolves: RHEL-241668 RHEL-242027 RHEL-242107 RHEL-242222 RHEL-242343 RHEL-242382 RHEL-251834
