@@ -9,18 +9,8 @@
 
 %global gomodulesmode GO111MODULE=on
 
-%global import_path github.com/containers/buildah
-%global branch release-1.43
-%global commit0 9fe6fe4c0348e3f95875624f33522b4aae67f06e
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
-
-%if %{defined fedora}
-%define build_with_btrfs 1
-%endif
-
 %if %{defined rhel}
 %define fips 1
-%define sequoia 1
 %endif
 
 %global git0 https://github.com/containers/%{name}
@@ -38,10 +28,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.43.1
+Version: 1.45.0
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 7%{?dist}
+Release: 2%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -49,11 +39,8 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 %endif
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
-%if 0%{?branch:1}
-Source0: https://gitlab.cee.redhat.com/sustaining-engineering/container-tools/src-git/%{name}/-/archive/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
-%else
-Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
-%endif
+# Tarball fetched from upstream
+Source: %{git0}/archive/v%{version}.tar.gz
 BuildRequires: device-mapper-devel
 BuildRequires: git-core
 BuildRequires: golang >= 1.16.6
@@ -65,22 +52,13 @@ BuildRequires: go-rpm-macros
 BuildRequires: gpgme-devel
 BuildRequires: libassuan-devel
 BuildRequires: make
-%if %{defined build_with_btrfs}
-BuildRequires: btrfs-progs-devel
-%endif
 BuildRequires: shadow-utils-subid-devel
 BuildRequires: sqlite-devel
 Requires: containers-common-extra
-%if %{defined fedora}
-BuildRequires: libseccomp-static
-%else
 BuildRequires: libseccomp-devel
-%endif
 Requires: libseccomp >= 2.4.1-0
-Suggests: cpp
-%if %{defined sequoia}
 Requires: podman-sequoia
-%endif
+Suggests: cpp
 
 %description
 The %{name} package provides a command line tool which can be used to
@@ -103,6 +81,9 @@ Requires: bats
 Recommends: bats
 %endif
 Requires: bzip2
+Requires: xz
+Requires: zstd
+Requires: which
 Requires: podman
 Requires: golang
 Requires: jq
@@ -110,6 +91,7 @@ Requires: httpd-tools
 Requires: openssl
 Requires: nmap-ncat
 Requires: git-daemon
+Requires: libselinux-utils
 
 %description tests
 %{summary}
@@ -117,11 +99,7 @@ Requires: git-daemon
 This package contains system tests for %{name}
 
 %prep
-%if 0%{?branch:1}
-%autosetup -Sgit -n %{name}-%{commit0}
-%else
-%autosetup -Sgit -n %{name}-%{commit0}
-%endif
+%autosetup -Sgit -n %{name}-%{version}
 
 %build
 %set_build_flags
@@ -136,22 +114,18 @@ CGO_CFLAGS=$(echo $CGO_CFLAGS | sed 's/-specs=\/usr\/lib\/rpm\/redhat\/redhat-an
 export CGO_CFLAGS+=" -m64 -mtune=generic -fcf-protection=full"
 %endif
 
-export CNI_VERSION=`grep '^# github.com/containernetworking/cni ' src/modules.txt | sed 's,.* ,,'`
-export LDFLAGS="-X main.buildInfo=`date +%s` -X main.cniVersion=${CNI_VERSION}"
+export LDFLAGS="-X main.buildInfo=`date +%s`"
 
 export BUILDTAGS="seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh) libsqlite3"
-%if !%{defined build_with_btrfs}
 export BUILDTAGS+=" exclude_graphdriver_btrfs"
-%endif
+export BUILDTAGS+=" containers_image_sequoia"
 
 %if %{defined fips}
 export BUILDTAGS+=" libtrust_openssl"
 %endif
 
-%if %{defined sequoia}
-export BUILDTAGS+=" containers_image_sequoia"
-%endif
-
+%{__rm} -f internal/mkcw/embed/entrypoint_amd64.gz
+%{__make} internal/mkcw/embed/entrypoint_amd64.gz
 %gobuild -o bin/%{name} ./cmd/%{name}
 %gobuild -o bin/imgtype ./tests/imgtype
 %gobuild -o bin/copy ./tests/copy
@@ -161,6 +135,8 @@ export BUILDTAGS+=" containers_image_sequoia"
 %gobuild -o bin/passwd ./tests/passwd
 %gobuild -o bin/crash ./tests/crash
 %gobuild -o bin/wait ./tests/wait
+%gobuild -o bin/grpcnoop ./tests/rpc/noop
+%gobuild -o bin/pipeloop ./tests/pipeloop/pipeloop.go
 %{__make} docs
 
 %install
@@ -176,6 +152,8 @@ cp bin/dumpspec %{buildroot}/%{_bindir}/%{name}-dumpspec
 cp bin/passwd %{buildroot}/%{_bindir}/%{name}-passwd
 cp bin/crash %{buildroot}/%{_bindir}/%{name}-crash
 cp bin/wait %{buildroot}/%{_bindir}/%{name}-wait
+cp bin/grpcnoop %{buildroot}/%{_bindir}/%{name}-grpcnoop
+cp bin/pipeloop %{buildroot}/%{_bindir}/%{name}-pipeloop
 
 rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 
@@ -204,43 +182,31 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_bindir}/%{name}-passwd
 %{_bindir}/%{name}-crash
 %{_bindir}/%{name}-wait
+%{_bindir}/%{name}-grpcnoop
+%{_bindir}/%{name}-pipeloop
 %{_datadir}/%{name}/test
 
 %changelog
-* Wed Oct 21 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-7
-- Rebuild for CVE-2026-111943
-- Resolves: RHEL-287469
+* Thu Aug 20 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-2
+- Rebuild for CVE-2026-56853 CVE-2026-33818 CVE-2026-56860 CVE-2026-56858
+  CVE-2026-56862 CVE-2026-39835
+- Resolves: RHEL-190077 RHEL-241178 RHEL-241572 RHEL-241814 RHEL-242174
+  RHEL-242264
 
-* Wed Sep 02 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-6
-- Rebuild for golang CVE fixes
-- Resolves: RHEL-229833 RHEL-241142 RHEL-241389 RHEL-241658 RHEL-241706 RHEL-242148 RHEL-251830
+* Mon Aug 03 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.45.0
+- Resolves: RHEL-185734
 
-* Sat Aug 08 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-5
-- rebuild for CVE-2026-33810
-- Resolves: RHEL-229833
+* Tue Jul 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.44.0-1
+- update to https://github.com/containers/buildah/releases/tag/v1.44.0
+- Resolves: RHEL-185734
 
-* Fri Jul 10 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-4
-- rebuild for CVE-2026-39822
-- Resolves: RHEL-193643
-
-* Tue Jun 30 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-3
-- bump golang.org/x/crypto to v0.52.0 to fix CVE-2026-39830
-- Resolves: RHEL-186266
-
-* Mon May 04 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-2
-- Rebuild for CVE-2026-25679
-- Resolves: RHEL-158476
-
-* Fri Apr 10 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-1
-- update to the latest content of https://github.com/containers/buildah/tree/release-1.43
-  (https://github.com/containers/buildah/commit/c6eb14c)
-- fixes "Buildah concurrent bearer token requests [RHEL 10.2] [0day]"
-- Resolves: RHEL-164030
-
-* Tue Apr 07 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-3
-- Switch from GnuPG to Sequoia for container image signature verification
-- Enable containers_image_sequoia build tag and add podman-sequoia dependency
-- Resolves: RHEL-56366
+* Wed Jun 17 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.2-1
+- update to https://github.com/containers/buildah/releases/tag/v1.43.2
+- Resolves: RHEL-185734
+* Thu Apr 23 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.1-1
+- update to https://github.com/containers/buildah/releases/tag/v1.43.1
+- Resolves: RHEL-153733
 
 * Mon Feb 23 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.43.0-2
 - Rebuild for new golang to address CVE-2025-68121
