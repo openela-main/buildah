@@ -187,11 +187,13 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
-* Thu Aug 20 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-2
-- Rebuild for CVE-2026-56853 CVE-2026-33818 CVE-2026-56860 CVE-2026-56858
-  CVE-2026-56862 CVE-2026-39835
-- Resolves: RHEL-190077 RHEL-241178 RHEL-241572 RHEL-241814 RHEL-242174
-  RHEL-242264
+* Tue Sep 01 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-2
+- Rebuild for Go security fixes (Go 1.26.7)
+- Resolves: RHEL-241178
+- Resolves: RHEL-242264
+- Resolves: RHEL-241572
+- Resolves: RHEL-241814
+- Resolves: RHEL-242174
 
 * Mon Aug 03 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-1
 - update to https://github.com/containers/buildah/releases/tag/v1.45.0
