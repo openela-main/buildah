@@ -9,9 +9,10 @@
 
 %global gomodulesmode GO111MODULE=on
 
-%if %{defined rhel}
-%define fips 1
-%endif
+%global import_path github.com/containers/buildah
+%global branch release-1.45-rhel
+%global commit0 e017645765dda980d6aebcbcd661f1449d4cd2dd
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %global git0 https://github.com/containers/%{name}
 
@@ -28,10 +29,10 @@ Epoch: 2
 # If that's what you're reading, Version must be 0, and will be updated by Packit for
 # copr and koji builds.
 # If you're reading this on dist-git, the version is automatically filled in by Packit.
-Version: 1.45.0
+Version: 1.45.2
 # The `AND` needs to be uppercase in the License for SPDX compatibility
 License: Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0
-Release: 2%{?dist}
+Release: 1%{?dist}
 %if %{defined golang_arches_future}
 ExclusiveArch: %{golang_arches_future}
 %else
@@ -39,8 +40,11 @@ ExclusiveArch: aarch64 ppc64le s390x x86_64
 %endif
 Summary: A command line tool used for creating OCI Images
 URL: https://%{name}.io
-# Tarball fetched from upstream
-Source: %{git0}/archive/v%{version}.tar.gz
+%if 0%{?branch:1}
+Source0: https://gitlab.cee.redhat.com/sustaining-engineering/container-tools/src-git/%{name}/-/archive/%{commit0}/%{branch}-%{shortcommit0}.tar.gz
+%else
+Source0: https://%{import_path}/archive/%{commit0}/%{name}-%{version}-%{shortcommit0}.tar.gz
+%endif
 BuildRequires: device-mapper-devel
 BuildRequires: git-core
 BuildRequires: golang >= 1.16.6
@@ -99,7 +103,7 @@ Requires: libselinux-utils
 This package contains system tests for %{name}
 
 %prep
-%autosetup -Sgit -n %{name}-%{version}
+%autosetup -Sgit -n %{name}-%{commit0}
 
 %build
 %set_build_flags
@@ -120,9 +124,6 @@ export BUILDTAGS="seccomp $(hack/systemd_tag.sh) $(hack/libsubid_tag.sh) libsqli
 export BUILDTAGS+=" exclude_graphdriver_btrfs"
 export BUILDTAGS+=" containers_image_sequoia"
 
-%if %{defined fips}
-export BUILDTAGS+=" libtrust_openssl"
-%endif
 
 %{__rm} -f internal/mkcw/embed/entrypoint_amd64.gz
 %{__make} internal/mkcw/embed/entrypoint_amd64.gz
@@ -187,6 +188,14 @@ rm %{buildroot}%{_datadir}/%{name}/test/system/tools/build/*
 %{_datadir}/%{name}/test
 
 %changelog
+* Mon Nov 09 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.2-1
+- update to the latest release-1.45-rhel branch to fix CVE-2026-78669
+- Resolves: RHEL-279309
+
+* Tue Nov 03 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-3
+- Drop libtrust_openssl build tag for golang-1.27 compatibility
+- Resolves: RHEL-299619
+
 * Tue Sep 01 2026 Jindrich Novy <jnovy@redhat.com> - 2:1.45.0-2
 - Rebuild for Go security fixes (Go 1.26.7)
 - Resolves: RHEL-241178
